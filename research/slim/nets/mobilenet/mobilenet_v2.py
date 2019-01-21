@@ -79,6 +79,54 @@ V2_DEF = dict(
         op(slim.conv2d, stride=1, kernel_size=[1, 1], num_outputs=1280)
     ],
 )
+
+MNASNET_DEF = dict(
+    defaults={
+        # Note: these parameters of batch norm affect the architecture
+        # that's why they are here and not in training_scope.
+        (slim.batch_norm,): {'center': True, 'scale': True},
+        (slim.conv2d, slim.fully_connected, slim.separable_conv2d): {
+            'normalizer_fn': slim.batch_norm, 'activation_fn': tf.nn.relu6
+        },
+        (ops.expanded_conv,): {
+            'expansion_size': expand_input(6),
+            'split_expansion': 1,
+            'normalizer_fn': slim.batch_norm,
+            'residual': True
+        },
+        (slim.conv2d, slim.separable_conv2d): {'padding': 'SAME'}
+    },
+    spec=[
+        # 224x224x3 -> Conv3x3
+        op(slim.conv2d, stride=2, num_outputs=32, kernel_size=[3, 3]),
+        # 112x112x32 -> SepConv, k3x3, no_skip
+        op(slim.separable_conv2d, stride=1, num_outputs=16, kernel_size=[3, 3]),
+        # 112x112x16 -> MBConv3, k3x3, id_skip, 3
+        op(ops.expanded_conv, stride=2, expansion_size=expand_input(3), num_outputs=24, kernel_size=[3, 3]),
+        op(ops.expanded_conv, stride=1, expansion_size=expand_input(3), num_outputs=24, kernel_size=[3, 3]),
+        op(ops.expanded_conv, stride=1, expansion_size=expand_input(3), num_outputs=24, kernel_size=[3, 3]),
+        # 56x56x24 -> MBConv3, k5x5, id_skip, 3
+        op(ops.expanded_conv, stride=2, expansion_size=expand_input(3), num_outputs=40, kernel_size=[5, 5]),
+        op(ops.expanded_conv, stride=1, expansion_size=expand_input(3), num_outputs=40, kernel_size=[5, 5]),
+        op(ops.expanded_conv, stride=1, expansion_size=expand_input(3), num_outputs=40, kernel_size=[5, 5]),
+        # 28x28x40 -> MBConv6, k5x5, id_skip, 3
+        op(ops.expanded_conv, stride=2, num_outputs=80, kernel_size=[5, 5]),
+        op(ops.expanded_conv, stride=1, num_outputs=80, kernel_size=[5, 5]),
+        op(ops.expanded_conv, stride=1, num_outputs=80, kernel_size=[5, 5]),
+        # 14x14x80 -> MBConv6, k3x3, id_skip, 2
+        op(ops.expanded_conv, stride=1, num_outputs=96, kernel_size=[3, 3]),
+        op(ops.expanded_conv, stride=1, num_outputs=96, kernel_size=[3, 3]),
+        # 14x14x96 -> MBConv6, k5x5, id_skip, 4
+        op(ops.expanded_conv, stride=2, num_outputs=192, kernel_size=[5, 5]),
+        op(ops.expanded_conv, stride=1, num_outputs=192, kernel_size=[5, 5]),
+        op(ops.expanded_conv, stride=1, num_outputs=192, kernel_size=[5, 5]),
+        op(ops.expanded_conv, stride=1, num_outputs=192, kernel_size=[5, 5]),
+        # 7x7x192 -> MBConv6, k3x3, id_skip, 1
+        op(ops.expanded_conv, stride=1, residual=False, num_outputs=320, kernel_size=[3, 3]),
+        # FC, Pooling
+        op(slim.conv2d, stride=1, kernel_size=[1, 1], num_outputs=1280)
+    ],
+)
 # pyformat: enable
 
 
@@ -180,6 +228,7 @@ mobilenet_v2_050 = wrapped_partial(mobilenet, depth_multiplier=0.50,
                                    finegrain_classification_mode=True)
 mobilenet_v2_035 = wrapped_partial(mobilenet, depth_multiplier=0.35,
                                    finegrain_classification_mode=True)
+mnasnet = wrapped_partial(mobilenet, scope="Mnasnet", conv_defs=MNASNET_DEF)
 
 
 @slim.add_arg_scope

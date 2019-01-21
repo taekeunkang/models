@@ -73,6 +73,7 @@ networks_map = {'alexnet_v2': alexnet.alexnet_v2,
                 'nasnet_large': nasnet.build_nasnet_large,
                 'pnasnet_large': pnasnet.build_pnasnet_large,
                 'pnasnet_mobile': pnasnet.build_pnasnet_mobile,
+                'mnasnet': mobilenet_v2.mnasnet,
                }
 
 arg_scopes_map = {'alexnet_v2': alexnet.alexnet_v2_arg_scope,
@@ -110,6 +111,7 @@ arg_scopes_map = {'alexnet_v2': alexnet.alexnet_v2_arg_scope,
                   'nasnet_large': nasnet.nasnet_large_arg_scope,
                   'pnasnet_large': pnasnet.pnasnet_large_arg_scope,
                   'pnasnet_mobile': pnasnet.pnasnet_mobile_arg_scope,
+                  'mnasnet': mobilenet_v2.training_scope,
                  }
 
 
