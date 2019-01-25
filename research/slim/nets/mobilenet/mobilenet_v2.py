@@ -100,7 +100,7 @@ MNASNET_DEF = dict(
         # 224x224x3 -> Conv3x3
         op(slim.conv2d, stride=2, num_outputs=32, kernel_size=[3, 3]),
         # 112x112x32 -> SepConv, k3x3, no_skip
-        op(slim.separable_conv2d, stride=1, depthwise_filter=[3, 3], pointwise_filter[16]),
+        op(slim.separable_conv2d, stride=1, kernel_size=[3, 3], num_outputs=16, depth_multiplier=1),
         # 112x112x16 -> MBConv3, k3x3, id_skip, 3
         op(ops.expanded_conv, stride=2, expansion_size=expand_input(3), num_outputs=24, kernel_size=[3, 3]),
         op(ops.expanded_conv, stride=1, expansion_size=expand_input(3), num_outputs=24, kernel_size=[3, 3]),
